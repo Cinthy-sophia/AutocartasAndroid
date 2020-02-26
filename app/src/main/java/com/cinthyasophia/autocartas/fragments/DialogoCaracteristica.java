@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -38,7 +39,7 @@ public class DialogoCaracteristica extends DialogFragment implements Dialog.OnCl
         builder.setTitle("Selecciona una característica para la jugada: ");
         builder.setPositiveButton("Listo", this);
 
-        listCaracteristicas = getView().findViewById(R.id.listCaracteristicas);
+        listCaracteristicas = layout.findViewById(R.id.listCaracteristicas);
 
         items = new ArrayList<>();
         for (Caracteristicas c:Caracteristicas.values()) {
@@ -49,10 +50,10 @@ public class DialogoCaracteristica extends DialogFragment implements Dialog.OnCl
         listCaracteristicas.setAdapter(adaptador);
 
 
-        listCaracteristicas.setOnClickListener(new View.OnClickListener() {
+        listCaracteristicas.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                caracteristica= v.toString();
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                caracteristica= view.toString();
             }
         });
 

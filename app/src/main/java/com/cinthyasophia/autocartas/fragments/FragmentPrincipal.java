@@ -12,6 +12,11 @@ import androidx.fragment.app.Fragment;
 
 import com.cinthyasophia.autocartas.R;
 
+/**
+ * Esta clase se encarga de mostrarle al usuario la pantalla de inicio del juego.
+ * Contiene un botón que al presionarlo, lleva a la pagina de iniciar sesion.
+ * @author cinthya rodriguez
+ */
 public class FragmentPrincipal extends Fragment {
    private Button bIniciar;
     @Nullable

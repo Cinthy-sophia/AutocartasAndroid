@@ -68,7 +68,7 @@ public class DialogoNuevoJugador extends DialogFragment implements DialogInterfa
             public void onResponse(Call<Jugador> call, Response<Jugador> response) {
                 Gson g = new Gson();
                 if(response.isSuccessful()){
-                    Toast.makeText(getContext(),"Nuevo jugador insertado, ahora inicie sesion.",Toast.LENGTH_LONG).show();
+                    //Toast.makeText(requi,"Nuevo jugador insertado, ahora inicie sesion.",Toast.LENGTH_LONG).show();
                     Jugador j = response.body();
                     Log.i("NUEVO JUGADOR AJA",j.getNick());
                 }

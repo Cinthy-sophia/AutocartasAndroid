@@ -22,12 +22,20 @@ import com.cinthyasophia.autocartas.modelos.Carta;
 import com.cinthyasophia.autocartas.modelos.Jugada;
 import com.cinthyasophia.autocartas.modelos.Partida;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Esta clase es la pantalla de juego principal, muestra las cartas totales del usuario,
+ * y es aqui donde el usuario realiza el juego con la CPU.
+ * @author cinthya rodriguez
+ */
 public class FragmentJuego extends Fragment {
     private TextView tvTurno;
     private TextView tvMano;
@@ -73,33 +81,38 @@ public class FragmentJuego extends Fragment {
         rvCartas.setEnabled(false);
         mano = 0;
 
-
         nuevaPartida(sesion);
+        obtenerCartasJugador();
 
-        if(turno == 0){
-            //Empieza la CPU
-            ready(sesion);
 
-            Toast.makeText(getContext(),"LE TOCA AL OTRO, TE ME ESPERAS ",Toast.LENGTH_LONG).show();
-
-        }else if(turno == 1){
-            Toast.makeText(getContext(),"ES TU TURNO MIRREY/RREINA, SELECCIONA UNA CARTA. ",Toast.LENGTH_LONG).show();
-            rvCartas.setEnabled(true);
+        /*while(mano<6){
+            //jugarCarta();
         }
-
+*/
+        //Al hacer click en una carta se abre un dialogo para que el usuario seleccione la caracteristica
         adapter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            String caracteristica;
-            DialogoCaracteristica dialogoCaracteristica =  new DialogoCaracteristica();
-            caracteristica= dialogoCaracteristica.getCaracteristica();
-            jugadaJugador = new Jugada(cartas.get(rvCartas.getChildAdapterPosition(v)),sesion,caracteristica,nick,mano);
+                String caracteristica;
+                DialogoCaracteristica dialogoCaracteristica =  new DialogoCaracteristica();
+                dialogoCaracteristica.show(getActivity().getSupportFragmentManager(), "error_dialog_caract");
+                caracteristica= dialogoCaracteristica.getCaracteristica();
+                jugadaJugador = new Jugada(cartas.get(rvCartas.getChildAdapterPosition(v)),sesion,caracteristica,nick,mano);
+                int resFotoJug = getResources().getIdentifier(cartas.get(rvCartas.getChildAdapterPosition(v)).getFoto(),null,getContext().getPackageName());
+                ivCartaJugador.setImageResource(resFotoJug);
+                rvCartas.setEnabled(false);
 
-            //jugarCarta();
             }
         });
 
+
     }
+
+    /**
+     * Recibe la sesion actual y crea una partida nueva, para que el jugador pueda jugar.
+     * Carga las cartas de juego, y luego selecciona quien inicia primero.
+     * @param sesion
+     */
 
     public void nuevaPartida(String sesion){
 
@@ -109,9 +122,6 @@ public class FragmentJuego extends Fragment {
 
                 if (response.isSuccessful()){
                     idPartida = response.body().getId();
-                    obtenerCartasJugador();
-                    turno();
-                    Toast.makeText(getContext(),"SIMON CARTAS CARGADAS MI WERA",Toast.LENGTH_LONG).show();
 
                     for (Carta c:cartas) {
                         Log.e("CORRECTISIMO", c.getMarca());
@@ -125,7 +135,7 @@ public class FragmentJuego extends Fragment {
 
             @Override
             public void onFailure(Call<Partida> call, Throwable t) {
-                Toast.makeText(getContext(),"NEIIIIIII NO SE PUEDE ",Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(),"NO SE PUEDE ",Toast.LENGTH_LONG).show();
                 Log.e("ERROR MASIVO", "Error del API." + t.getMessage());
 
 
@@ -135,27 +145,52 @@ public class FragmentJuego extends Fragment {
 
     }
 
-    public void obtenerCartasJugador(){
-        apiService.obtenerCartasJugador().enqueue(new Callback<ArrayList<Carta>>() {
+    /**
+     * Se encarga de recibir las cartas del apiRest, lsa guarda y actualiza el RecyclerView
+     * para que el usuario pueda acceder a ellas.
+     */
+    public void obtenerCartasJugador() {
+        apiService.obtenerYRepartirCartas().enqueue(new Callback<List<Carta>>() {
             @Override
-            public void onResponse(Call<ArrayList<Carta>> call, Response<ArrayList<Carta>> response) {
+            public void onResponse(Call<List<Carta>> call, Response<List<Carta>> response) {
                 if (response.isSuccessful()){
-                    cartas = response.body();
+                    cartas = (ArrayList<Carta>) response.body();
                     adapter.swap(cartas);
+                    if(cartas.size()!=0){
+                        turno();
+
+                        if(turno == 0){
+                            //Empieza la CPU
+                            ready(sesion);
+                            //int resFotoCPU = getResources().getIdentifier(jugadaCPU.getCartas().getFoto(),null,getContext().getPackageName());
+                            //ivCartaCPU.setImageResource(resFotoCPU);
+
+                            Toast.makeText(getContext(),"LE TOCA AL OTRO.",Toast.LENGTH_LONG).show();
+
+                        }else if(turno == 1){
+                            //Empieza el jugador
+                            Toast.makeText(getContext(),"ES TU TURNO, SELECCIONA UNA CARTA. ",Toast.LENGTH_LONG).show();
+                            rvCartas.setEnabled(true);
+                        }
+                    }
+
+                }else{
+                    Log.e("ERROR MASIVO", "Error del API. NO PUEDO OBTENER LAS CARTAS. ");
                 }
             }
 
             @Override
-            public void onFailure(Call<ArrayList<Carta>> call, Throwable t) {
-                Toast.makeText(getContext(),"NEIIIIIII NO SE PUEDE ",Toast.LENGTH_LONG).show();
-                Log.e("ERROR MASIVO", "Error del API." + t.getMessage());
+            public void onFailure(Call<List<Carta>> call, Throwable t) {
+
             }
         });
-
     }
 
+    /**
+     * Recibe quien inicia primero desde el apiRest y lo guarda en la variable turno.
+     */
     public void turno(){
-        // TODO: 24/02/20 turno
+
         apiService.sorteoTurno().enqueue(new Callback<Integer>() {
             @Override
             public void onResponse(Call<Integer> call, Response<Integer> response) {
@@ -177,22 +212,33 @@ public class FragmentJuego extends Fragment {
 
     }
 
+    /**
+     * En caso de que inicie el CPU la partida, le enviamos el id de sesion y nos devuelve
+     * la jugada de la CPU.
+     * @param idSesion
+     */
     public void ready(String idSesion){
-
-        // TODO: 25/02/20 ready
         apiService.ready(idSesion).enqueue(new Callback<Jugada>() {
             @Override
             public void onResponse(Call<Jugada> call, Response<Jugada> response) {
-                if(response.isSuccessful()){
+                if (response.isSuccessful()){
                     jugadaCPU = response.body();
+                }else{
+                    try {
+                        Log.e("ERROR MASIVO", "Error del API. CPU NO PUEDE ENVIAR NADA. "+ response.errorBody().string());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                 }
             }
 
             @Override
             public void onFailure(Call<Jugada> call, Throwable t) {
+                Log.e("ERROR MASIVO", "Error del API. CPU NO PUEDE ENVIAR NADA. "+t.getMessage());
 
             }
         });
+
     }
 }

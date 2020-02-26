@@ -7,7 +7,8 @@ public class ApiRest {
     }
 
     public static final String BASE_URL = "http://192.168.1.103:8080/"; //ip casa
-    //public static final String BASE_URL = "http://10.197.96.144:43468/";//ip instituto
+    //public static final String BASE_URL = "http://192.168.105.14:9090/";//ip instituto
+    //public static final String BASE_URL = "http://10.206.228.120:8080/";//ip instituto
 
 
     public static ApiRestService getAPIService() {

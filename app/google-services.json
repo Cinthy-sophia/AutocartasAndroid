@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "300959297374",
+    "firebase_url": "https://autocartas-a8d5e.firebaseio.com",
+    "project_id": "autocartas-a8d5e",
+    "storage_bucket": "autocartas-a8d5e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:300959297374:android:936aace2974eedff0369cf",
+        "android_client_info": {
+          "package_name": "com.cinthyasophia.autocartas"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "300959297374-iqkf0u2csg24jhnr6kchptffuo5opm2g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cinthyasophia.autocartas",
+            "certificate_hash": "972c2255adc89dd0b0a171539148255df4b62783"
+          }
+        },
+        {
+          "client_id": "300959297374-ipe3r48s1o3blrj2m3sqpjhobjoq5lqa.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxr-OWDYjE02iNR4wP5nQj45_YZESaKP4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "300959297374-ipe3r48s1o3blrj2m3sqpjhobjoq5lqa.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

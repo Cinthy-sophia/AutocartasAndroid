@@ -17,7 +17,7 @@ import retrofit2.http.POST;
 
 public interface ApiRestService {
     @GET("AutocartasRest/rest/autocartas/baraja_cartas")
-    Call<ArrayList<Carta>> obtenerCartasJugador();
+    Call<List<Carta>> obtenerYRepartirCartas();
 
     @GET("AutocartasRest/rest/jugadores")
     Call<ArrayList<Jugador>> obtenerJugadores();

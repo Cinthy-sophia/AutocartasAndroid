@@ -8,8 +8,8 @@
 
     <ImageView
         android:id="@+id/ivCarta"
-        android:layout_width="196dp"
-        android:layout_height="289dp"
+        android:layout_width="147dp"
+        android:layout_height="204dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.004"
