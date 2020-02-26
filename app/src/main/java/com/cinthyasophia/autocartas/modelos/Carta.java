@@ -15,7 +15,7 @@ public class Carta {
     private String modelo;
     @SerializedName("motor")
     @Expose
-    private String motor;
+    private int motor;
     @SerializedName("foto")
     @Expose
     private String foto;
@@ -35,7 +35,7 @@ public class Carta {
     @Expose
     private float consumo;
 
-    public Carta(int id, String marca, String modelo, String motor, String foto, int potencia, int velocidad_maxima, int cilindrada, int revoluciones_minuto, float consumo) {
+    public Carta(int id, String marca, String modelo, int motor, String foto, int potencia, int velocidad_maxima, int cilindrada, int revoluciones_minuto, float consumo) {
         this.id = id;
         this.marca = marca;
         this.modelo = modelo;
@@ -60,7 +60,7 @@ public class Carta {
         return modelo;
     }
 
-    public String getMotor() {
+    public int getMotor() {
         return motor;
     }
 

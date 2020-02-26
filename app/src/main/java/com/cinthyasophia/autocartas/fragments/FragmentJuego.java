@@ -24,7 +24,6 @@ import com.cinthyasophia.autocartas.modelos.Partida;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import retrofit2.Call;
@@ -40,6 +39,7 @@ public class FragmentJuego extends Fragment {
     private TextView tvTurno;
     private TextView tvMano;
     private TextView tvGanador;
+    private TextView tvCaracteristica;
     private ImageView ivCartaCPU;
     private ImageView ivCartaJugador;
     private RecyclerView rvCartas;
@@ -50,6 +50,7 @@ public class FragmentJuego extends Fragment {
     private int idPartida;
     private int turno;
     private int mano;
+    private String caracteristica;
     private boolean ready;
     AdapterCarta adapter;
     private Jugada jugadaCPU;
@@ -71,6 +72,7 @@ public class FragmentJuego extends Fragment {
         tvTurno= getView().findViewById(R.id.tvTurno);
         tvMano= getView().findViewById(R.id.tvMano);
         tvGanador = getView().findViewById(R.id.tvGanador);
+        tvCaracteristica = getView().findViewById(R.id.tvCaracteristica);
         ivCartaCPU= getView().findViewById(R.id.ivCartaCPU);
         ivCartaJugador =getView().findViewById(R.id.ivCartaJugador);
         rvCartas = getView().findViewById(R.id.rvCartas);
@@ -81,22 +83,15 @@ public class FragmentJuego extends Fragment {
         rvCartas.setEnabled(false);
         mano = 0;
 
+        tvMano.setText(mano);
         nuevaPartida(sesion);
         obtenerCartasJugador();
 
 
-        /*while(mano<6){
-            //jugarCarta();
-        }
-*/
         //Al hacer click en una carta se abre un dialogo para que el usuario seleccione la caracteristica
         adapter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String caracteristica;
-                DialogoCaracteristica dialogoCaracteristica =  new DialogoCaracteristica();
-                dialogoCaracteristica.show(getActivity().getSupportFragmentManager(), "error_dialog_caract");
-                caracteristica= dialogoCaracteristica.getCaracteristica();
                 jugadaJugador = new Jugada(cartas.get(rvCartas.getChildAdapterPosition(v)),sesion,caracteristica,nick,mano);
                 int resFotoJug = getResources().getIdentifier(cartas.get(rvCartas.getChildAdapterPosition(v)).getFoto(),null,getContext().getPackageName());
                 ivCartaJugador.setImageResource(resFotoJug);
@@ -104,7 +99,6 @@ public class FragmentJuego extends Fragment {
 
             }
         });
-
 
     }
 
@@ -156,24 +150,7 @@ public class FragmentJuego extends Fragment {
                 if (response.isSuccessful()){
                     cartas = (ArrayList<Carta>) response.body();
                     adapter.swap(cartas);
-                    if(cartas.size()!=0){
-                        turno();
-
-                        if(turno == 0){
-                            //Empieza la CPU
-                            ready(sesion);
-                            //int resFotoCPU = getResources().getIdentifier(jugadaCPU.getCartas().getFoto(),null,getContext().getPackageName());
-                            //ivCartaCPU.setImageResource(resFotoCPU);
-
-                            Toast.makeText(getContext(),"LE TOCA AL OTRO.",Toast.LENGTH_LONG).show();
-
-                        }else if(turno == 1){
-                            //Empieza el jugador
-                            Toast.makeText(getContext(),"ES TU TURNO, SELECCIONA UNA CARTA. ",Toast.LENGTH_LONG).show();
-                            rvCartas.setEnabled(true);
-                        }
-                    }
-
+                    turno();
                 }else{
                     Log.e("ERROR MASIVO", "Error del API. NO PUEDO OBTENER LAS CARTAS. ");
                 }
@@ -196,6 +173,23 @@ public class FragmentJuego extends Fragment {
             public void onResponse(Call<Integer> call, Response<Integer> response) {
                 if(response.isSuccessful()){
                     turno = response.body();
+                    if(turno == 0){
+                        //Empieza la CPU
+                        ready(sesion);
+                        tvTurno.setText("CPU");
+                        int resFotoCPU = getResources().getIdentifier(jugadaCPU.getCartas().getFoto(),null,getContext().getPackageName());
+                        ivCartaCPU.setImageResource(resFotoCPU);
+                        Toast.makeText(getContext(),"LE TOCA AL OTRO.",Toast.LENGTH_LONG).show();
+
+                    }else if(turno == 1){
+                        //Empieza el jugador
+                        rvCartas.setEnabled(true);
+                        tvTurno.setText(nick);
+                        Toast.makeText(getContext(),"ES TU TURNO, SELECCIONA UNA CARTA. ",Toast.LENGTH_LONG).show();
+                        seleccionarCaracteristica();
+                        jugarCarta(jugadaJugador);
+
+                    }
                 }
             }
 
@@ -206,8 +200,27 @@ public class FragmentJuego extends Fragment {
         });
     }
 
-    public void jugarCarta(Jugada jugada, String sesion){
-        // TODO: 24/02/20 jugar carta
+    /**
+     * Le envia al servidor la jugada realizada por el jugador, el servidor devuelve su propia jugada
+     * @param jugada
+     */
+    public void jugarCarta(final Jugada jugada){
+
+        apiService.jugarCarta(jugada,sesion).enqueue(new Callback<Jugada>() {
+            @Override
+            public void onResponse(Call<Jugada> call, Response<Jugada> response) {
+                if(response.isSuccessful()){
+                    int resFotoCPU = getResources().getIdentifier(jugadaCPU.getCartas().getFoto(),null,getContext().getPackageName());
+                    ivCartaCPU.setImageResource(resFotoCPU);
+                    tvGanador.setText(seleccionarGanador(response.body(),jugada,jugada.getCaracteristica()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Jugada> call, Throwable t) {
+
+            }
+        });
 
 
     }
@@ -223,6 +236,8 @@ public class FragmentJuego extends Fragment {
             public void onResponse(Call<Jugada> call, Response<Jugada> response) {
                 if (response.isSuccessful()){
                     jugadaCPU = response.body();
+                    tvTurno.setText(jugadaCPU.getJugador());
+                    tvMano.setText(jugadaCPU.getMano());
                 }else{
                     try {
                         Log.e("ERROR MASIVO", "Error del API. CPU NO PUEDE ENVIAR NADA. "+ response.errorBody().string());
@@ -241,4 +256,92 @@ public class FragmentJuego extends Fragment {
         });
 
     }
+
+    /**
+     * Inicia el dialogo que le permite seleccionar al jugador la característica por la que jugará.
+     */
+    public void seleccionarCaracteristica(){
+        DialogoCaracteristica dialogoCaracteristica =  new DialogoCaracteristica();
+        dialogoCaracteristica.show(getActivity().getSupportFragmentManager(), "error_dialog_caract");
+        caracteristica= dialogoCaracteristica.getCaracteristica();
+        tvCaracteristica.setText(caracteristica);
+    }
+
+    /**
+     * Recibe las jugadas realizadas, y la caracteristica e indica quien ha sido el ganador de la partida
+     * @param jugadaCPU
+     * @param jugadaJugador
+     * @param caracteristica
+     * @return ganador
+     */
+    public String seleccionarGanador(Jugada jugadaCPU, Jugada jugadaJugador, String caracteristica){
+
+        String ganador;
+
+        switch (caracteristica) {
+            case "motor":
+
+                if(jugadaCPU.getCartas().getMotor() > jugadaJugador.getCartas().getMotor()) {
+                    ganador = jugadaCPU.getJugador();
+                }else if(jugadaCPU.getCartas().getMotor() < jugadaJugador.getCartas().getMotor()){
+                    ganador = jugadaJugador.getJugador();
+                }else{
+                    ganador = "Empate";
+                }
+
+                break;
+            case "potencia":
+                if(jugadaCPU.getCartas().getPotencia() > jugadaJugador.getCartas().getPotencia()) {
+                    ganador = jugadaCPU.getJugador();
+                }else if(jugadaCPU.getCartas().getPotencia() < jugadaJugador.getCartas().getPotencia()){
+                    ganador = jugadaJugador.getJugador();
+                }else{
+                    ganador = "Empate";
+                }
+                break;
+            case "velocidad_maxima":
+                if(jugadaCPU.getCartas().getVelocidad_maxima() > jugadaJugador.getCartas().getVelocidad_maxima()) {
+                    ganador = jugadaCPU.getJugador();
+                }else if(jugadaCPU.getCartas().getVelocidad_maxima() < jugadaJugador.getCartas().getVelocidad_maxima()){
+                    ganador = jugadaJugador.getJugador();
+                }else{
+                    ganador = "Empate";
+                }
+                break;
+            case "cilindrada":
+                if(jugadaCPU.getCartas().getCilindrada() > jugadaJugador.getCartas().getCilindrada()) {
+                    ganador = jugadaCPU.getJugador();
+                }else if(jugadaCPU.getCartas().getCilindrada() < jugadaJugador.getCartas().getCilindrada()){
+                    ganador = jugadaJugador.getJugador();
+                }else{
+                    ganador = "Empate";
+                }
+                break;
+            case "revoluciones_por_minuto":
+                if(jugadaCPU.getCartas().getRevoluciones_minuto() < jugadaJugador.getCartas().getRevoluciones_minuto()) {
+                    ganador = jugadaCPU.getJugador();
+                }else if(jugadaCPU.getCartas().getRevoluciones_minuto() > jugadaJugador.getCartas().getRevoluciones_minuto()){
+                    ganador = jugadaJugador.getJugador();
+                }else{
+                    ganador = "Empate";
+                }
+                break;
+            case "consumo":
+                if(jugadaCPU.getCartas().getConsumo() < jugadaJugador.getCartas().getConsumo()) {
+                    ganador = jugadaCPU.getJugador();
+                }else if(jugadaCPU.getCartas().getMotor() > jugadaJugador.getCartas().getMotor()){
+                    ganador = jugadaJugador.getJugador();
+                }else{
+                    ganador = "Empate";
+                }
+                break;
+
+            default:
+                ganador = "Empate";
+                break;
+        }
+
+        return ganador;
+    }
+
 }
